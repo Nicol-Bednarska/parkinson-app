@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tremor Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+
+        <!-- ===== HOME SCREEN ===== -->
+        <section id="screen-home" class="screen active">
+            <div class="hero">
+                <div class="logo-circle">
+                    <svg viewBox="0 0 100 100" class="logo-svg" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 12 50 L 28 50 L 33 35 L 43 70 L 53 20 L 63 70 L 73 50 L 88 50"
+                              stroke="white" stroke-width="5" fill="none"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>Tremor Tracker</h1>
+                <p class="tagline">Quick tremor check, anytime</p>
+            </div>
+            <div class="bottom-actions">
+                <button class="big-button primary nav-btn" data-target="instructions">
+                    Start Test
+                </button>
+                <button class="big-button secondary nav-btn" data-target="stats">
+                    Weekly Statistics
+                </button>
+            </div>
+        </section>
+
+        <!-- ===== INSTRUCTIONS SCREEN ===== -->
+        <section id="screen-instructions" class="screen">
+            <button class="back-button nav-btn" data-target="home">← Back</button>
+            <div class="content">
+                <h2>How to take the test</h2>
+                <div class="illustration">
+                    <img src="pose.png" alt="Sit with arms extended forward, holding a phone" class="pose-image">
+                </div>
+                <p class="instruction-caption">Hold the phone with your arm extended forward.<br>Stay still for 10 seconds.</p>
+            </div>
+            <button id="beginTestBtn" class="big-button primary">
+                I'm Ready
+            </button>
+        </section>
+
+        <!-- ===== RECORDING SCREEN ===== -->
+        <section id="screen-recording" class="screen">
+            <div class="recording-content">
+                <div class="pulse-circle">
+                    <div class="countdown" id="countdownNumber">10</div>
+                </div>
+                <p class="recording-text">Hold still</p>
+                <p class="recording-subtext">Recording your motion...</p>
+            </div>
+        </section>
+
+        <!-- ===== RESULT SCREEN ===== -->
+        <section id="screen-result" class="screen">
+            <div class="content">
+                <h2>Your Result</h2>
+                <div id="resultDisplay" class="result-display"></div>
+
+                <div class="mood-section">
+                    <p class="mood-question">How are you feeling?</p>
+                    <div class="mood-chips" id="moodChips">
+                        <button class="mood-chip" data-mood="calm">
+                            <span class="mood-emoji">😌</span>
+                            <span class="mood-label">Calm</span>
+                        </button>
+                        <button class="mood-chip" data-mood="good">
+                            <span class="mood-emoji">🙂</span>
+                            <span class="mood-label">Good</span>
+                        </button>
+                        <button class="mood-chip" data-mood="stressed">
+                            <span class="mood-emoji">😟</span>
+                            <span class="mood-label">Stressed</span>
+                        </button>
+                        <button class="mood-chip" data-mood="tired">
+                            <span class="mood-emoji">😴</span>
+                            <span class="mood-label">Tired</span>
+                        </button>
+                        <button class="mood-chip" data-mood="down">
+                            <span class="mood-emoji">😔</span>
+                            <span class="mood-label">Down</span>
+                        </button>
+                    </div>
+                    <p class="mood-feedback" id="moodFeedback"></p>
+                </div>
+            </div>
+            <div class="bottom-actions">
+                <button id="saveResultBtn" class="big-button primary">
+                    Save & Done
+                </button>
+            </div>
+        </section>
+
+        <!-- ===== STATISTICS SCREEN ===== -->
+        <section id="screen-stats" class="screen">
+            <button class="back-button nav-btn" data-target="home">← Back</button>
+            <div class="content">
+                <h2>This Week</h2>
+                <p class="date-range" id="dateRange"></p>
+
+                <div class="stats-card">
+                    <p class="stats-label">Total tests</p>
+                    <p class="stats-big-number" id="totalTests">0</p>
+                </div>
+
+                <div class="stats-card">
+                    <h3 class="stats-title">Tremor levels</h3>
+                    <div class="bar-chart" id="barChart"></div>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-dot mild"></span>Mild</span>
+                        <span class="legend-item"><span class="legend-dot moderate"></span>Moderate</span>
+                        <span class="legend-item"><span class="legend-dot strong"></span>Strong</span>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h3 class="stats-title">How you felt</h3>
+                    <div class="mood-stats" id="moodStats"></div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
