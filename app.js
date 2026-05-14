@@ -304,23 +304,82 @@ function renderMoodStats(weekTests) {
 }
 
 // ============================================================
-// === EDGE IMPULSE MODEL GOES HERE ===========================
+// === EDGE IMPULSE MODEL =====================================
 // ============================================================
+
+// Model configuration (matches your Edge Impulse training)
+const MODEL_WINDOW_SECONDS = 2;
+const MODEL_FREQUENCY_HZ = 62.5;
+const EXPECTED_FEATURES = Math.round(MODEL_WINDOW_SECONDS * MODEL_FREQUENCY_HZ * 3); // 375
+
+let classifier = null;
+let classifierReady = false;
+
+async function initClassifier() {
+    try {
+        classifier = new EdgeImpulseClassifier();
+        await classifier.init();
+        classifierReady = true;
+        console.log('Edge Impulse model loaded:', classifier.getProjectInfo());
+    } catch (err) {
+        console.error('Failed to load Edge Impulse model:', err);
+    }
+}
+
+initClassifier();
+
 function analyzeMotion(data) {
+    if (!classifierReady) {
+        return { level: 'mild', label: 'Model loading...' };
+    }
     if (data.length === 0) {
         return { level: 'mild', label: 'No motion data' };
     }
 
-    let totalVariation = 0;
-    for (let i = 1; i < data.length; i++) {
-        const dx = data[i].x - data[i-1].x;
-        const dy = data[i].y - data[i-1].y;
-        const dz = data[i].z - data[i-1].z;
-        totalVariation += Math.sqrt(dx*dx + dy*dy + dz*dz);
-    }
-    const avg = totalVariation / data.length;
+    // Take the LAST 2 seconds of recorded data (most stable)
+    const samplesNeeded = Math.round(MODEL_WINDOW_SECONDS * MODEL_FREQUENCY_HZ);
+    const sliceStart = Math.max(0, data.length - samplesNeeded);
+    const slice = data.slice(sliceStart);
 
-    if (avg < 0.5)  return { level: 'mild',     label: 'Mild tremor' };
-    if (avg < 2)    return { level: 'moderate', label: 'Moderate tremor' };
-                    return { level: 'strong',   label: 'Strong tremor' };
+    // Flatten to [x1, y1, z1, x2, y2, z2, ...]
+    let features = [];
+    for (const sample of slice) {
+        features.push(sample.x, sample.y, sample.z);
+    }
+
+    // Trim or pad to exact expected size
+    if (features.length > EXPECTED_FEATURES) {
+        features = features.slice(0, EXPECTED_FEATURES);
+    }
+    while (features.length < EXPECTED_FEATURES) {
+        features.push(0);
+    }
+
+    console.log(`Classifying ${features.length} features (expected ${EXPECTED_FEATURES})`);
+
+    try {
+        const result = classifier.classify(features);
+        console.log('Classification result:', result);
+
+        // Find label with highest probability
+        const top = result.results.reduce((a, b) =>
+            a.value > b.value ? a : b
+        );
+
+        // Map Edge Impulse labels to UI levels
+        const labelMap = {
+            'normal rest state': { level: 'mild',     label: 'No tremor detected' },
+            '1 stage':           { level: 'mild',     label: 'Stage 1 tremor' },
+            '2 stage':           { level: 'moderate', label: 'Stage 2 tremor' },
+            '3 stage':           { level: 'strong',   label: 'Stage 3 tremor' }
+        };
+
+        return labelMap[top.label] || {
+            level: 'mild',
+            label: top.label
+        };
+    } catch (err) {
+        console.error('Classification error:', err);
+        return { level: 'mild', label: 'Analysis error' };
+    }
 }
