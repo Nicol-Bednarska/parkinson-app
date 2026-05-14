@@ -370,14 +370,18 @@ function analyzeMotion(data) {
 
     try {
         const result = classifier.classify(features);
-        console.log('Classification result:', result);
+        console.log('Wynik klasyfikacji z Edge Impulse:', result);
 
-        // Find label with highest probability
+        // Znajdź etykietę z najwyższym prawdopodobieństwem
         const top = result.results.reduce((a, b) =>
             a.value > b.value ? a : b
         );
 
-        // Map Edge Impulse labels to UI levels
+        // Zamieniamy na małe litery i usuwamy zbędne spacje na początku/końcu
+        const cleanedLabel = top.label.toLowerCase().trim();
+        console.log('Oczyszczona etykieta do dopasowania:', cleanedLabel);
+
+        // Tworzymy mapę z małymi literami jako klucze
         const labelMap = {
             'normal rest state': { level: 'mild',     label: 'No tremor detected' },
             '1 stage':           { level: 'mild',     label: 'Stage 1 tremor' },
@@ -385,10 +389,19 @@ function analyzeMotion(data) {
             '3 stage':           { level: 'strong',   label: 'Stage 3 tremor' }
         };
 
-        return labelMap[top.label] || {
-            level: 'mild',
-            label: top.label
-        };
+        // Sprawdzamy dopasowanie
+        if (labelMap[cleanedLabel]) {
+            return labelMap[cleanedLabel];
+        } else {
+            // Jeśli model zwrócił coś innego (np. "3_stage" albo "stage 3"),
+            // to zamiast psuć statystyki, próbujemy zgadnąć po samej cyfrze:
+            if (cleanedLabel.includes('3')) return { level: 'strong', label: top.label };
+            if (cleanedLabel.includes('2')) return { level: 'moderate', label: top.label };
+            
+            // Kompletny brak dopasowania - zwracamy etykietę z modelu jako mild
+            return { level: 'mild', label: top.label };
+        }
+
     } catch (err) {
         console.error('Classification error:', err);
         return { level: 'mild', label: 'Analysis error' };
