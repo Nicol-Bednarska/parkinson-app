@@ -97,22 +97,28 @@ moodChips.forEach(chip => {
 
 // === SAVE RESULT ===
 function saveResult() {
+    // Jeśli z jakiegoś powodu nie ma wyniku, wróć do home
     if (!lastResult) {
+        console.error("Brak lastResult przy zapisie!");
         showScreen('home');
         return;
     }
 
+    // Tworzymy wpis do historii dokładnie z tego, co zwrócił model
     const entry = {
         timestamp: new Date().toISOString(),
-        level: lastResult.level,
+        level: lastResult.level,   // Sprawdź czy to zapisuje 'strong' / 'moderate'
         label: lastResult.label,
         mood: selectedMood
     };
+
+    console.log("Zapisuję do bazy danych taki obiekt:", entry);
 
     const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     history.push(entry);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
 
+    // Dopiero PO zapisaniu do localStorage czyścimy zmienne i resetujemy nastroje
     resetMoodSelection();
     lastResult = null;
     showScreen('home');
@@ -171,10 +177,12 @@ async function runTest() {
     window.removeEventListener('devicemotion', handleMotion);
     isTestRunning = false;
 
+    // TUTAJ: Wyliczamy wynik i przypisujemy go do zmiennej globalnej lastResult
     const result = analyzeMotion(motionData);
-    lastResult = result;
+    lastResult = result; 
 
-    resetMoodSelection();
+    // WAŻNE: Najpierw pokazujemy ekran wyniku, a dopiero POTEM resetujemy nastrój.
+    // Usunęliśmy stąd resetMoodSelection(), bo on mógł czyścić dane za wcześnie.
     showScreen('result');
     showResult(result.level, result.label);
 }
