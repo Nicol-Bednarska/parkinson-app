@@ -317,10 +317,21 @@ let classifierReady = false;
 
 async function initClassifier() {
     try {
+        // Czekamy chwilę, aż moduł WebAssembly się zainicjuje
+        if (typeof Module === 'undefined') {
+            throw new Error("WASM Module not loaded");
+        }
+
+        // Sprawdzamy czy klasa istnieje w oknie przeglądarki
+        if (typeof EdgeImpulseClassifier === 'undefined') {
+             console.error("Klasa EdgeImpulseClassifier nadal nie jest widoczna. Sprawdź czy plik run-impulse.js jest załadowany.");
+             return;
+        }
+
         classifier = new EdgeImpulseClassifier();
         await classifier.init();
         classifierReady = true;
-        console.log('Edge Impulse model loaded:', classifier.getProjectInfo());
+        console.log('Model Edge Impulse załadowany pomyślnie!');
     } catch (err) {
         console.error('Failed to load Edge Impulse model:', err);
     }
